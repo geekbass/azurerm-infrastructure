@@ -39,14 +39,15 @@ variable "num_private_agents" {
   default     = "1"
 }
 
-variable "custom_data" {
-  description = "User data to be used on these instances (cloud-init). This prevents kickoff of DC/OS pre-reqs"
-  default     = "echo DONE"
+variable "num_public_agents" {
+  description = "Specify the amount of public agents. These agents will host marathon-lb and edgelb"
+  default     = "0"
 }
+
 
 # Begin Modules
 module "dcos-infrastructure" {
-  source  = "git::https://github.com/geekbass/terraform-azurerm-infrastructure?ref=user_data"
+  source  = "git::https://github.com/geekbass/terraform-azurerm-infrastructure?ref=master"
 
   # This is used to name resources
   cluster_name = "${var.cluster_name}"
@@ -72,8 +73,9 @@ module "dcos-infrastructure" {
   # Private Agents Number
   num_private_agents = "${var.num_private_agents}"
 
-  # Cloud-Init file if desired
-  custom_data = "${var.custom_data}"
+  # Public Agent nodes count
+  num_public_agents = "${var.num_public_agents}"
+
 
   # ANY specific tags here  
   tags = {
@@ -90,6 +92,8 @@ locals {
   masters_ansible_ips           = "${join("\n", flatten(list(module.dcos-infrastructure.masters.public_ips)))}"
   masters_ansible_private_ips   = "${join("\n      - ", flatten(list(module.dcos-infrastructure.masters.private_ips)))}"
   private_agents_ansible_ips    = "${join("\n", flatten(list(module.dcos-infrastructure.private_agents.public_ips)))}"
+  public_agents_ansible_ips     = "${join("\n", flatten(list(module.dcos-infrastructure.public_agents.public_ips)))}"
+
 }
 
 # Build the vars file
@@ -133,7 +137,7 @@ ${local.masters_ansible_ips}
 [agents_private]
 ${local.private_agents_ansible_ips}
 [agents_public]
-
+${local.public_agents_ansible_ips}
 [bootstraps:vars]
 node_type=bootstrap
 [masters:vars]
