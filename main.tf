@@ -39,12 +39,6 @@ variable "num_private_agents" {
   default     = "1"
 }
 
-# Number of Public Agents
-variable "num_public_agents" {
-  description = "Specify the amount of public agents. These agents will host marathon-lb and edgelb"
-  default     = "0"
-}
-
 variable "custom_data" {
   description = "User data to be used on these instances (cloud-init). This prevents kickoff of DC/OS pre-reqs"
   default     = "echo DONE"
@@ -78,9 +72,6 @@ module "dcos-infrastructure" {
   # Private Agents Number
   num_private_agents = "${var.num_private_agents}"
 
-  # Public Agents Number
-  num_public_agents = "${var.num_public_agents}"
-
   # Cloud-Init file if desired
   custom_data = "${var.custom_data}"
 
@@ -99,7 +90,6 @@ locals {
   masters_ansible_ips           = "${join("\n", flatten(list(module.dcos-infrastructure.masters.public_ips)))}"
   masters_ansible_private_ips   = "${join("\n      - ", flatten(list(module.dcos-infrastructure.masters.private_ips)))}"
   private_agents_ansible_ips    = "${join("\n", flatten(list(module.dcos-infrastructure.private_agents.public_ips)))}"
-  public_agents_ansible_ips     = "${join("\n", flatten(list(module.dcos-infrastructure.public_agents.public_ips)))}"
 }
 
 # Build the vars file
@@ -143,7 +133,7 @@ ${local.masters_ansible_ips}
 [agents_private]
 ${local.private_agents_ansible_ips}
 [agents_public]
-${local.public_agents_ansible_ips}
+
 [bootstraps:vars]
 node_type=bootstrap
 [masters:vars]
@@ -182,8 +172,5 @@ pipelining = True
 ssh_args = -o PreferredAuthentications=publickey -o ControlMaster=auto -o ControlPersist=5m
 EOF
 }
-/*output "cluster-address" {
-  value = "${module.dcos-infrastructure.lb.masters_dns_name}"
-}
-*/
+
 
