@@ -7,15 +7,12 @@ Using DC/OS Terraform Infrastructure module to spin up a "cluster"-like infrastr
 
 - Network SG
 
-- LB
-
 - Bootstrap Node
 
 - Master Node(s)
 
 - Private Nodes(s)
 
-- Private Node(s)
 
 You can view all your components under the Resource Group Created (`dcos-$VAR.CLUSTER_NAME`). You can use this to delete all resources if needed or your TF state gets lost. 
 
